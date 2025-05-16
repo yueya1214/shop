@@ -1,16 +1,18 @@
-const fs = require('fs');
-const path = require('path');
-const { promisify } = require('util');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const readFileAsync = promisify(fs.readFile);
-const writeFileAsync = promisify(fs.writeFile);
-const readdirAsync = promisify(fs.readdir);
-const statAsync = promisify(fs.stat);
+// ES模块中获取__dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// 将回调API转换为Promise
+const readFileAsync = (path) => fs.promises.readFile(path, 'utf8');
+const writeFileAsync = (path, data) => fs.promises.writeFile(path, data, 'utf8');
+const readdirAsync = (path) => fs.promises.readdir(path);
+const statAsync = (path) => fs.promises.stat(path);
 
 // 冲突标记
-const START_MARKER = '<<<<<<< HEAD';
-const MIDDLE_MARKER = '=======';
-const END_MARKER = '>>>>>>>';
 
 // 递归获取所有文件
 async function getAllFiles(dir, fileList = []) {
@@ -34,7 +36,7 @@ async function getAllFiles(dir, fileList = []) {
 async function fixConflict(filePath) {
   try {
     // 读取文件内容
-    let content = await readFileAsync(filePath, 'utf8');
+    let content = await readFileAsync(filePath);
     
     // 检查是否有合并冲突
     if (!content.includes(START_MARKER)) {
@@ -74,7 +76,7 @@ async function fixConflict(filePath) {
     }
     
     // 写入修复后的内容
-    await writeFileAsync(filePath, result.join('\n'), 'utf8');
+    await writeFileAsync(filePath, result.join('\n'));
     return true;
   } catch (error) {
     console.error(`无法修复文件 ${filePath}:`, error);

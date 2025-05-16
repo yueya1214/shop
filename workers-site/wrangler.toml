@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 name = "shopping-platform"
 type = "javascript"
 account_id = ""
@@ -28,35 +27,4 @@ binding = "USERS"
 id = "请替换为您的KV命名空间ID"
 
 [vars]
-=======
-name = "shopping-platform"
-type = "javascript"
-account_id = ""
-workers_dev = true
-route = ""
-zone_id = ""
-compatibility_date = "2023-12-01"
-
-[site]
-bucket = "../dist"
-entry-point = "."
-
-[build]
-command = "npm run build"
-upload.format = "service-worker"
-
-[[kv_namespaces]]
-binding = "PRODUCTS"
-id = "请替换为您的KV命名空间ID"
-
-[[kv_namespaces]]
-binding = "ORDERS"
-id = "请替换为您的KV命名空间ID"
-
-[[kv_namespaces]]
-binding = "USERS"
-id = "请替换为您的KV命名空间ID"
-
-[vars]
->>>>>>> master
 JWT_SECRET = "your-secret-key" 

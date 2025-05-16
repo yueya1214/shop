@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": [
+    "/assets/*",
+    "/build/*",
+    "/favicon.ico",
+    "/favicon.svg",
+    "/manifest.json"
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+} 
