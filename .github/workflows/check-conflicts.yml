@@ -15,7 +15,6 @@ jobs:
         
       - name: 检查合并冲突标记
         run: |
-          if grep -r "<<<<<<< HEAD" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --include="*.json" .; then
             echo "发现合并冲突标记！请解决冲突后再提交。"
             exit 1
           fi 

@@ -1,0 +1,66 @@
+name: 部署到Cloudflare Pages
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: 部署到Cloudflare Pages
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3
+        
+      - name: 检查合并冲突标记
+        run: |
+          if grep -r "<<<<<<< HEAD" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --include="*.json" .; then
+            echo "发现合并冲突标记！请解决冲突后再提交。"
+            exit 1
+          fi
+        
+      - name: 设置Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          
+      - name: 安装依赖
+        run: npm ci
+        
+      - name: 构建
+        run: npm run build
+        
+      - name: 创建路由配置
+        run: |
+          cat > dist/_routes.json << EOF
+          {
+            "version": 1,
+            "include": ["/*"],
+            "exclude": [
+              "/assets/*",
+              "/build/*",
+              "/favicon.ico",
+              "/favicon.svg",
+              "/manifest.json"
+            ],
+            "routes": [
+              {
+                "src": "/(.*)",
+                "dest": "/index.html"
+              }
+            ]
+          }
+          EOF
+        
+      - name: 部署到Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: shop
+          directory: dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }} 
