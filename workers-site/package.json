@@ -1,0 +1,13 @@
+{
+  "name": "shopping-api-worker",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@cloudflare/kv-asset-handler": "^0.3.0",
+    "@tsndr/cloudflare-worker-jwt": "^2.2.2"
+  },
+  "scripts": {
+    "predeploy": "cd workers-site && npm install",
+    "deploy": "npm run build && npm run predeploy && npx wrangler deploy"
+  }
+}
