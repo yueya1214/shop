@@ -22,4 +22,12 @@ id = "c7a2aa4f59694019a22be954a0944d5d"
 bucket = "./dist"
 
 [build]
-command = "npm run build" 
+command = "npm run build"
+
+[build.upload]
+format = "modules"
+main = "./workers-site/index.js"
+
+[build.upload.module_rules]
+"@cloudflare/kv-asset-handler" = { type = "npm" }
+"@tsndr/cloudflare-worker-jwt" = { type = "npm" } 
