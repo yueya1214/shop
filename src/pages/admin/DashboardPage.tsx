@@ -36,12 +36,12 @@ const DashboardPage = () => {
         const { orders, total } = await apiGetAllOrders(1, 100)
         
         // 计算统计数据
-        const pendingOrders = orders.filter(order => order.status === '待处理').length
-        const shippedOrders = orders.filter(order => order.status === '已发货').length
-        const completedOrders = orders.filter(order => order.status === '已完成').length
+        const pendingOrders = orders.filter(order => order.status === 'pending').length
+        const shippedOrders = orders.filter(order => order.status === 'shipped').length
+        const completedOrders = orders.filter(order => order.status === 'delivered').length
         
         const totalRevenue = orders.reduce((sum, order) => {
-          return order.status !== '已取消' ? sum + order.totalAmount : sum
+          return order.status !== 'cancelled' ? sum + order.total : sum
         }, 0)
         
         // 获取最近的订单
@@ -231,10 +231,9 @@ const DashboardPage = () => {
                       <span 
                         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                         ${
-                          order.status === '待处理' ? 'bg-yellow-100 text-yellow-800' :
-                          order.status === '已确认' ? 'bg-blue-100 text-blue-800' :
-                          order.status === '已发货' ? 'bg-purple-100 text-purple-800' :
-                          order.status === '已完成' ? 'bg-green-100 text-green-800' :
+                          order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          order.status === 'shipped' ? 'bg-purple-100 text-purple-800' :
+                          order.status === 'delivered' ? 'bg-green-100 text-green-800' :
                           'bg-gray-100 text-gray-800'
                         }`}
                       >

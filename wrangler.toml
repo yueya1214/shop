@@ -5,6 +5,7 @@ compatibility_date = "2023-12-01"
 [vars]
 JWT_SECRET = "123456"
 
+# 注意：请使用您在 Cloudflare 控制台创建的 KV 命名空间 ID 替换以下值
 [[kv_namespaces]]
 binding = "PRODUCTS"
 id = "ff6f15738b664e49b453fa50ac51d162"

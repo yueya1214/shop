@@ -2,7 +2,7 @@ import axios from 'axios'
 import { useAuthStore } from '../stores/authStore'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://api.binggo.ip-ddns.com',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://shopping-api.您的用户名.workers.dev',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
