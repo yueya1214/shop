@@ -167,7 +167,7 @@ const HomePage = () => {
               全部
             </button>
             
-            {categories.map(category => (
+            {Array.isArray(categories) && categories.map(category => (
               <button
                 key={category}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium ${
@@ -206,7 +206,7 @@ const HomePage = () => {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.map(product => (
+            {Array.isArray(products) && products.map(product => (
               <div key={product.id} className="card group">
                 {/* 商品图片 */}
                 <div 

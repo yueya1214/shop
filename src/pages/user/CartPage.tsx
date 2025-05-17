@@ -70,7 +70,7 @@ const CartPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {items.map(item => (
+                {Array.isArray(items) && items.map(item => (
                   <tr key={item.id} className="border-t">
                     <td className="py-4 px-4">
                       <div className="flex items-center">

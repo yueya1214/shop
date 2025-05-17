@@ -145,11 +145,11 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, isLoad
             className={`input w-full ${errors.category ? 'border-red-500' : ''}`}
           >
             <option value="">选择分类</option>
-            {categories.map(category => (
+            {Array.isArray(categories) ? categories.map(category => (
               <option key={category} value={category}>
                 {category}
               </option>
-            ))}
+            )) : null}
             <option value="新分类">+ 添加新分类</option>
           </select>
           {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}

@@ -126,7 +126,7 @@ const OrdersPage: React.FC = () => {
       ) : (
         <>
           <div className="space-y-4">
-            {orders.map(order => (
+            {Array.isArray(orders) && orders.map(order => (
               <div 
                 key={order.id} 
                 className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
@@ -152,7 +152,7 @@ const OrdersPage: React.FC = () => {
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex">
-                      {order.items.slice(0, 3).map((item, index) => (
+                      {Array.isArray(order.items) && order.items.slice(0, 3).map((item, index) => (
                         <div key={index} className="h-16 w-16 -ml-2 first:ml-0 rounded-md overflow-hidden border border-gray-200">
                           <img 
                             src={item.image} 
@@ -161,7 +161,7 @@ const OrdersPage: React.FC = () => {
                           />
                         </div>
                       ))}
-                      {order.items.length > 3 && (
+                      {Array.isArray(order.items) && order.items.length > 3 && (
                         <div className="h-16 w-16 -ml-2 flex items-center justify-center bg-gray-100 rounded-md border border-gray-200 text-sm text-gray-500">
                           +{order.items.length - 3}
                         </div>

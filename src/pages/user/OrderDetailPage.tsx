@@ -130,7 +130,7 @@ const OrderDetailPage = () => {
           <h2 className="text-lg font-semibold">订单商品</h2>
         </div>
         <ul className="divide-y">
-          {order.items.map((item, index) => (
+          {Array.isArray(order.items) && order.items.map((item, index) => (
             <li key={index} className="flex py-4 px-6">
               <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md">
                 <img
@@ -155,8 +155,8 @@ const OrderDetailPage = () => {
           ))}
         </ul>
         <div className="p-4 border-t bg-gray-50 text-right">
-          <div className="text-gray-600">总计 {order.items.reduce((sum, item) => sum + item.quantity, 0)} 件商品</div>
-          <div className="text-xl font-bold text-blue-600">¥{order.totalAmount.toFixed(2)}</div>
+          <div className="text-gray-600">总计 {Array.isArray(order.items) ? order.items.reduce((sum, item) => sum + item.quantity, 0) : 0} 件商品</div>
+          <div className="text-xl font-bold text-blue-600">¥{(order.total || (order as any).totalAmount || 0).toFixed(2)}</div>
         </div>
       </div>
       
