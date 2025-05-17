@@ -1,0 +1,21 @@
+name = "shopping-api"
+main = "workers-site/index.js"
+compatibility_date = "2023-12-01"
+
+[vars]
+JWT_SECRET = "123456"
+
+[[kv_namespaces]]
+binding = "PRODUCTS"
+id = "ff6f15738b664e49b453fa50ac51d162"
+
+[[kv_namespaces]]
+binding = "ORDERS"
+id = "7492b8bc9350456f869fa36bf61e05dd"
+
+[[kv_namespaces]]
+binding = "USERS"
+id = "c7a2aa4f59694019a22be954a0944d5d"
+
+[site]
+bucket = "./dist" 
