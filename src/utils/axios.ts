@@ -23,6 +23,13 @@ api.interceptors.request.use(
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
     }
+    
+    // 确保OPTIONS请求被正确处理
+    if (config.method === 'options') {
+      config.headers['Access-Control-Request-Method'] = config.method
+      config.headers['Access-Control-Request-Headers'] = 'Content-Type, Authorization'
+    }
+    
     return config
   },
   (error) => {
@@ -61,7 +68,7 @@ api.interceptors.response.use(
       // 服务器返回了错误状态码
       switch (error.response.status) {
         case 400:
-          errorMsg = error.response.data?.message || '请求参数错误';
+          errorMsg = error.response.data?.message || error.response.data?.error || '请求参数错误';
           break;
         case 401:
           errorMsg = '未授权，请重新登录';
@@ -74,11 +81,19 @@ api.interceptors.response.use(
         case 404:
           errorMsg = '请求的资源不存在';
           break;
+        case 405:
+          errorMsg = '请求方法不允许';
+          console.error('405错误 - 请求方法不允许:', {
+            url: error.config?.url,
+            method: error.config?.method,
+            allowedMethods: error.response.headers['allow']
+          });
+          break;
         case 500:
           errorMsg = '服务器内部错误';
           break;
         default:
-          errorMsg = error.response.data?.message || '请求失败，请稍后再试';
+          errorMsg = error.response.data?.message || error.response.data?.error || '请求失败，请稍后再试';
       }
     }
     

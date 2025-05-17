@@ -20,6 +20,8 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, isLoad
   })
   
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isAddingNewCategory, setIsAddingNewCategory] = useState(false)
+  const [newCategoryValue, setNewCategoryValue] = useState('')
   
   // 当初始数据改变时更新表单
   useEffect(() => {
@@ -38,7 +40,17 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, isLoad
   // 处理输入变化
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    
+    // 特殊处理分类选择
+    if (name === 'category' && value === '新分类') {
+      setIsAddingNewCategory(true)
+      setNewCategoryValue('')
+    } else if (name === 'category') {
+      setIsAddingNewCategory(false)
+      setFormData(prev => ({ ...prev, [name]: value }))
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }))
+    }
     
     // 清除相关错误
     if (errors[name]) {
@@ -48,6 +60,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, isLoad
         return newErrors
       })
     }
+  }
+  
+  // 处理新分类输入
+  const handleNewCategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setNewCategoryValue(value)
+    setFormData(prev => ({ ...prev, category: value }))
   }
   
   // 表单提交
@@ -140,7 +159,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, isLoad
           <select
             id="category"
             name="category"
-            value={formData.category}
+            value={isAddingNewCategory ? '新分类' : formData.category}
             onChange={handleChange}
             className={`input w-full ${errors.category ? 'border-red-500' : ''}`}
           >
@@ -154,16 +173,16 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, isLoad
           </select>
           {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
           
-          {formData.category === '新分类' && (
+          {isAddingNewCategory && (
             <div className="mt-2">
               <input
                 type="text"
                 name="newCategory"
+                value={newCategoryValue}
                 className="input w-full"
                 placeholder="输入新分类名称"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-                  setFormData(prev => ({ ...prev, category: e.target.value }))
-                }
+                onChange={handleNewCategoryChange}
+                autoFocus
               />
             </div>
           )}

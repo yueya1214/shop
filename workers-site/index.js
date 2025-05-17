@@ -3,12 +3,24 @@ import jwt from '@tsndr/cloudflare-worker-jwt'
 
 // 定义 KV 命名空间的绑定名称
 // 这些命名空间需要在 Cloudflare 控制台中创建并绑定
-const PRODUCTS_NAMESPACE = 'PRODUCTS'
-const ORDERS_NAMESPACE = 'ORDERS'
-const USERS_NAMESPACE = 'USERS'
+// 在实际部署时，这些变量将从环境中获取
+let PRODUCTS_NAMESPACE
+let ORDERS_NAMESPACE
+let USERS_NAMESPACE
 
 // 定义 JWT 密钥
-const JWT_SECRET = 'your-secret-key' // 在实际部署时应替换为环境变量
+let JWT_SECRET
+
+// 初始化环境变量和KV绑定
+function initEnvironment(env) {
+  // 从环境变量获取KV命名空间
+  PRODUCTS_NAMESPACE = env.PRODUCTS
+  ORDERS_NAMESPACE = env.ORDERS
+  USERS_NAMESPACE = env.USERS
+  
+  // 从环境变量获取JWT密钥
+  JWT_SECRET = env.JWT_SECRET || 'your-secret-key'
+}
 
 // API 路由处理程序
 const apiRoutes = {
@@ -23,7 +35,7 @@ const apiRoutes = {
   'POST /api/products': handleCreateProduct,
   'PUT /api/products/:id': handleUpdateProduct,
   'DELETE /api/products/:id': handleDeleteProduct,
-  'GET /api/products/categories': handleGetCategories,
+  'GET /api/categories': handleGetCategories,
   
   // 订单相关 API
   'GET /api/orders': handleGetUserOrders,
@@ -51,6 +63,9 @@ async function handleRequest(event) {
   const url = new URL(request.url)
   const path = url.pathname
   
+  // 初始化环境变量和KV绑定
+  initEnvironment(event.env)
+  
   // 判断是否为 API 请求
   if (path.startsWith('/api/')) {
     return handleApiRequest(request, path)
@@ -76,6 +91,19 @@ async function handleRequest(event) {
 async function handleApiRequest(request, path) {
   const method = request.method
   const url = new URL(request.url)
+  
+  // 处理 OPTIONS 请求（CORS 预检）
+  if (method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Max-Age': '86400'
+      }
+    })
+  }
   
   // 提取路由路径参数
   const routePath = path.replace(/\/api\//, '/')
@@ -134,7 +162,7 @@ function needsAuth(routeKey) {
     'POST /api/auth/admin-login',
     'GET /api/products',
     'GET /api/products/:id',
-    'GET /api/products/categories'
+    'GET /api/categories'
   ]
   
   return !publicEndpoints.includes(routeKey)
