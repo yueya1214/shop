@@ -13,6 +13,7 @@ const ProductsManagePage = () => {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   
+  // 确保初始化为空数组
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
@@ -57,8 +58,8 @@ const ProductsManagePage = () => {
         }
         
         // 确保我们有有效的商品数据
-        const products = productsData?.products || [];
-        const total = productsData?.total || 0;
+        const products = Array.isArray(productsData?.products) ? productsData.products : [];
+        const total = typeof productsData?.total === 'number' ? productsData.total : 0;
         
         setProducts(products)
         setTotalProducts(total)
@@ -72,7 +73,8 @@ const ProductsManagePage = () => {
           categoriesData = await mockAPI.getCategories();
         }
         
-        setCategories(categoriesData || [])
+        // 确保分类数据是数组
+        setCategories(Array.isArray(categoriesData) ? categoriesData : [])
       } catch (error) {
         console.error('加载商品列表失败', error)
         setError('加载商品列表失败，请稍后再试')
@@ -132,7 +134,7 @@ const ProductsManagePage = () => {
   
   // 处理批量选择
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
+    if (e.target.checked && Array.isArray(products)) {
       setSelectedProducts(products.map(product => product.id))
     } else {
       setSelectedProducts([])
@@ -240,11 +242,11 @@ const ProductsManagePage = () => {
               onChange={handleCategoryChange}
             >
               <option value="">所有分类</option>
-              {categories.map(category => (
+              {Array.isArray(categories) ? categories.map(category => (
                 <option key={category} value={category}>
                   {category}
                 </option>
-              ))}
+              )) : null}
             </select>
           </div>
         </div>
@@ -281,7 +283,7 @@ const ProductsManagePage = () => {
                     <input
                       type="checkbox"
                       className="h-4 w-4"
-                      checked={selectedProducts.length === products.length}
+                      checked={Array.isArray(products) && selectedProducts.length === products.length && products.length > 0}
                       onChange={handleSelectAll}
                     />
                   </th>
@@ -303,7 +305,7 @@ const ProductsManagePage = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {products.map((product) => (
+                {Array.isArray(products) && products.map((product) => (
                   <tr key={product.id} className="hover:bg-gray-50">
                     <td className="px-4 py-4">
                       <input
