@@ -23,11 +23,3 @@ bucket = "./dist"
 
 [build]
 command = "npm run build"
-
-[build.upload]
-format = "modules"
-main = "./workers-site/index.js"
-
-[build.upload.module_rules]
-"@cloudflare/kv-asset-handler" = { type = "npm" }
-"@tsndr/cloudflare-worker-jwt" = { type = "npm" } 

@@ -21,5 +21,11 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    rollupOptions: {
+      external: [
+        '@cloudflare/kv-asset-handler',
+        '@tsndr/cloudflare-worker-jwt'
+      ]
+    }
   }
 }) 
