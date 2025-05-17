@@ -349,29 +349,34 @@ async function handleGetProducts(request, { query }) {
   const productsListJson = await PRODUCTS_NAMESPACE.get('products:list')
   let productsList = productsListJson ? JSON.parse(productsListJson) : []
   
+  // 使用for循环替代filter进行异步筛选
+  let filteredProducts = []
+  
   // 应用搜索和分类过滤
-  let filteredProducts = productsList
-  
-  if (search) {
-    const searchLower = search.toLowerCase()
-    filteredProducts = filteredProducts.filter(id => {
-      const productJson = await PRODUCTS_NAMESPACE.get(`product:${id}`)
-      if (!productJson) return false
-      
-      const product = JSON.parse(productJson)
-      return product.name.toLowerCase().includes(searchLower) || 
-             product.description.toLowerCase().includes(searchLower)
-    })
-  }
-  
-  if (category) {
-    filteredProducts = filteredProducts.filter(id => {
-      const productJson = await PRODUCTS_NAMESPACE.get(`product:${id}`)
-      if (!productJson) return false
-      
-      const product = JSON.parse(productJson)
-      return product.category === category
-    })
+  for (const id of productsList) {
+    const productJson = await PRODUCTS_NAMESPACE.get(`product:${id}`)
+    if (!productJson) continue
+    
+    const product = JSON.parse(productJson)
+    let shouldInclude = true
+    
+    // 搜索过滤
+    if (search) {
+      const searchLower = search.toLowerCase()
+      if (!product.name.toLowerCase().includes(searchLower) && 
+          !product.description.toLowerCase().includes(searchLower)) {
+        shouldInclude = false
+      }
+    }
+    
+    // 分类过滤
+    if (category && product.category !== category) {
+      shouldInclude = false
+    }
+    
+    if (shouldInclude) {
+      filteredProducts.push(id)
+    }
   }
   
   // 计算分页

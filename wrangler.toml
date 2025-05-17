@@ -19,4 +19,7 @@ binding = "USERS"
 id = "c7a2aa4f59694019a22be954a0944d5d"
 
 [site]
-bucket = "./dist" 
+bucket = "./dist"
+
+[build]
+command = "npm run build" 
