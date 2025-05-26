@@ -13,6 +13,8 @@ import OrderDetailPage from './pages/user/OrderDetailPage'
 import ProfilePage from './pages/user/ProfilePage'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
+import DeliveryInfoPage from './pages/user/DeliveryInfoPage'
+import CustomerServicePage from './pages/user/CustomerServicePage'
 
 // 管理员页面组件
 import AdminLayout from './layouts/AdminLayout'
@@ -60,6 +62,8 @@ function App() {
           <Route path="profile" element={
             <ProtectedRoute children={<ProfilePage />} />
           } />
+          <Route path="delivery-info" element={<DeliveryInfoPage />} />
+          <Route path="customer-service" element={<CustomerServicePage />} />
         </Route>
         
         {/* 管理员路由 */}

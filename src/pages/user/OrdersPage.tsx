@@ -4,6 +4,7 @@ import { FiPackage, FiChevronRight, FiRefreshCw } from 'react-icons/fi'
 import { apiGetUserOrders, Order, mockAPI } from '../../services/orderService'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorAlert from '../../components/ErrorAlert'
+import { useAuthStore } from '../../stores/authStore'
 
 // 格式化日期
 const formatDate = (dateString: string) => {
@@ -37,6 +38,7 @@ const statusText: Record<string, string> = {
 
 const OrdersPage: React.FC = () => {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -50,9 +52,9 @@ const OrdersPage: React.FC = () => {
       setError('')
       
       try {
-        // 使用实际API或模拟API
+        // 使用实际API或模拟API，传递用户ID
         // const result = await apiGetUserOrders(page, 10)
-        const result = await mockAPI.getUserOrders(page, 10)
+        const result = await mockAPI.getUserOrders(page, 10, undefined, user?.id)
         setOrders(result.orders)
         setTotalPages(Math.ceil(result.total / result.limit))
       } catch (error) {
@@ -64,16 +66,16 @@ const OrdersPage: React.FC = () => {
     }
     
     fetchOrders()
-  }, [page])
+  }, [page, user?.id])
   
   // 处理刷新
   const handleRefresh = () => {
     setLoading(true)
     setError('')
     
-    // 使用实际API或模拟API
+    // 使用实际API或模拟API，传递用户ID
     // apiGetUserOrders(page, 10)
-    mockAPI.getUserOrders(page, 10)
+    mockAPI.getUserOrders(page, 10, undefined, user?.id)
       .then(result => {
         setOrders(result.orders)
         setTotalPages(Math.ceil(result.total / result.limit))

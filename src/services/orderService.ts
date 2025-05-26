@@ -143,9 +143,15 @@ export const mockAPI = {
   getUserOrders: (
     page = 1,
     limit = 10,
-    status?: OrderStatus
+    status?: OrderStatus,
+    userId?: string
   ): Promise<OrderListResponse> => {
     let filteredOrders = [...mockOrders]
+    
+    // 根据用户ID过滤订单，如果是新用户，返回空订单列表
+    if (userId) {
+      filteredOrders = filteredOrders.filter(o => o.userId === userId)
+    }
     
     if (status) {
       filteredOrders = filteredOrders.filter(o => o.status === status)

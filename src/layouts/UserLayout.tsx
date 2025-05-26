@@ -346,12 +346,12 @@ const UserLayout: React.FC = () => {
               <a href="#" className="text-gray-400 hover:text-gray-500">
                 关于我们
               </a>
-              <a href="#" className="text-gray-400 hover:text-gray-500">
+              <Link to="/customer-service" className="text-gray-400 hover:text-gray-500">
                 联系客服
-              </a>
-              <a href="#" className="text-gray-400 hover:text-gray-500">
+              </Link>
+              <Link to="/delivery-info" className="text-gray-400 hover:text-gray-500">
                 配送信息
-              </a>
+              </Link>
               <a href="#" className="text-gray-400 hover:text-gray-500">
                 隐私政策
               </a>
