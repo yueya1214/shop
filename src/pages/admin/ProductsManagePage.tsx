@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiList, FiPackage } from 'react-icons/fi'
+import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiList, FiPackage, FiUpload, FiDownload, FiRefreshCw } from 'react-icons/fi'
 import { 
   apiGetProducts, 
   apiDeleteProduct, 
   apiGetCategories,
+  apiImportProducts,
+  apiExportProducts,
+  apiUpdateProduct,
   mockAPI,
   Product 
 } from '../../services/productService'
@@ -12,6 +15,7 @@ import {
 const ProductsManagePage = () => {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   
   // 确保初始化为空数组
   const [products, setProducts] = useState<Product[]>([])
@@ -21,6 +25,8 @@ const ProductsManagePage = () => {
   const [totalProducts, setTotalProducts] = useState(0)
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '')
+  const [importLoading, setImportLoading] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
   
   // 分页
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'))
@@ -28,63 +34,65 @@ const ProductsManagePage = () => {
   
   // 选中的商品（用于批量操作）
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
+  const [bulkActionLoading, setBulkActionLoading] = useState(false)
   
   // 获取商品列表
   useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true)
-      setError('')
-      
-      try {
-        // 尝试从API获取数据
-        let productsData;
-        try {
-          // 使用正确的参数格式调用 API
-          productsData = await apiGetProducts({
-            page, 
-            limit, 
-            search: searchQuery || undefined, 
-            category: selectedCategory || undefined
-          });
-        } catch (apiError) {
-          console.error('API请求失败，使用模拟数据', apiError);
-          // 使用模拟数据作为备用
-          productsData = await mockAPI.getProducts({
-            page, 
-            limit, 
-            search: searchQuery || undefined, 
-            category: selectedCategory || undefined
-          });
-        }
-        
-        // 确保我们有有效的商品数据
-        const products = Array.isArray(productsData?.products) ? productsData.products : [];
-        const total = typeof productsData?.total === 'number' ? productsData.total : 0;
-        
-        setProducts(products)
-        setTotalProducts(total)
-        
-        // 获取商品分类
-        let categoriesData;
-        try {
-          categoriesData = await apiGetCategories();
-        } catch (apiError) {
-          console.error('获取分类失败，使用模拟数据', apiError);
-          categoriesData = await mockAPI.getCategories();
-        }
-        
-        // 确保分类数据是数组
-        setCategories(Array.isArray(categoriesData) ? categoriesData : [])
-      } catch (error) {
-        console.error('加载商品列表失败', error)
-        setError('加载商品列表失败，请稍后再试')
-      } finally {
-        setLoading(false)
-      }
-    }
-    
     fetchProducts()
   }, [page, searchQuery, selectedCategory])
+  
+  // 定义fetchProducts函数，供其他函数调用
+  const fetchProducts = async () => {
+    setLoading(true)
+    setError('')
+    
+    try {
+      // 尝试从API获取数据
+      let productsData;
+      try {
+        // 使用正确的参数格式调用 API
+        productsData = await apiGetProducts({
+          page, 
+          limit, 
+          search: searchQuery || undefined, 
+          category: selectedCategory || undefined
+        });
+      } catch (apiError) {
+        console.error('API请求失败，使用模拟数据', apiError);
+        // 使用模拟数据作为备用
+        productsData = await mockAPI.getProducts({
+          page, 
+          limit, 
+          search: searchQuery || undefined, 
+          category: selectedCategory || undefined
+        });
+      }
+      
+      // 确保我们有有效的商品数据
+      const products = Array.isArray(productsData?.products) ? productsData.products : [];
+      const total = typeof productsData?.total === 'number' ? productsData.total : 0;
+      
+      setProducts(products)
+      setTotalProducts(total)
+      
+      // 获取商品分类
+      let categoriesData;
+      try {
+        categoriesData = await apiGetCategories();
+      } catch (apiError) {
+        console.error('获取分类失败，使用模拟数据', apiError);
+        categoriesData = await mockAPI.getCategories();
+      }
+      
+      // 确保分类数据是数组
+      setCategories(Array.isArray(categoriesData) ? categoriesData : [])
+    } catch (error) {
+      console.error('加载商品列表失败', error)
+      setError('加载商品列表失败，请稍后再试')
+    } finally {
+      setLoading(false)
+    }
+  }
   
   // 更新 URL 参数
   useEffect(() => {
@@ -160,6 +168,8 @@ const ProductsManagePage = () => {
       return
     }
     
+    setBulkActionLoading(true)
+    
     try {
       // 这里实际项目中应该有一个批量删除的 API
       // 这里简化为逐个删除
@@ -181,11 +191,191 @@ const ProductsManagePage = () => {
     } catch (error) {
       console.error('批量删除商品失败', error)
       alert('批量删除商品失败，请稍后再试')
+    } finally {
+      setBulkActionLoading(false)
     }
   }
   
   // 计算总页数
   const totalPages = Math.ceil(totalProducts / limit)
+  
+  // 处理文件导入
+  const handleImportClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click()
+    }
+  }
+  
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    setImportLoading(true)
+    setError('')
+    
+    try {
+      const reader = new FileReader()
+      reader.onload = async (event) => {
+        try {
+          const jsonData = JSON.parse(event.target?.result as string)
+          
+          // 调用导入API
+          try {
+            await apiImportProducts(jsonData)
+          } catch (apiError) {
+            console.error('API导入失败，使用模拟数据', apiError)
+            await mockAPI.importProducts(jsonData)
+          }
+          
+          // 重新加载商品列表
+          fetchProducts()
+          alert('商品导入成功')
+        } catch (parseError) {
+          console.error('解析JSON文件失败', parseError)
+          setError('导入失败：无效的JSON格式')
+        } finally {
+          setImportLoading(false)
+        }
+      }
+      
+      reader.onerror = () => {
+        setError('读取文件失败')
+        setImportLoading(false)
+      }
+      
+      reader.readAsText(file)
+    } catch (error) {
+      console.error('导入商品失败', error)
+      setError('导入商品失败，请稍后再试')
+      setImportLoading(false)
+    }
+    
+    // 清空文件输入，以便可以再次选择同一个文件
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+  
+  // 处理导出
+  const handleExport = async () => {
+    setExportLoading(true)
+    
+    try {
+      let data
+      try {
+        data = await apiExportProducts()
+      } catch (apiError) {
+        console.error('API导出失败，使用模拟数据', apiError)
+        data = await mockAPI.exportProducts()
+      }
+      
+      // 创建下载链接
+      const jsonString = JSON.stringify(data, null, 2)
+      const blob = new Blob([jsonString], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `products-export-${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(a)
+      a.click()
+      
+      // 清理
+      setTimeout(() => {
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }, 0)
+    } catch (error) {
+      console.error('导出商品失败', error)
+      setError('导出商品失败，请稍后再试')
+    } finally {
+      setExportLoading(false)
+    }
+  }
+  
+  // 处理批量库存更新
+  const handleBulkStockUpdate = async (action: 'increment' | 'decrement' | 'set', value: number) => {
+    if (selectedProducts.length === 0) {
+      alert('请先选择要更新的商品')
+      return
+    }
+    
+    if (action === 'set' && value < 0) {
+      alert('库存不能设置为负数')
+      return
+    }
+    
+    if (!window.confirm(`确定要${action === 'increment' ? '增加' : action === 'decrement' ? '减少' : '设置'}选中的 ${selectedProducts.length} 件商品的库存${action === 'set' ? '为' : ''}${value}${action === 'set' ? '' : '个单位'}吗？`)) {
+      return
+    }
+    
+    setBulkActionLoading(true)
+    
+    try {
+      // 获取所有选中的商品
+      const selectedProductsData = products.filter(product => selectedProducts.includes(product.id))
+      
+      // 逐个更新库存
+      for (const product of selectedProductsData) {
+        let newStock = product.stock
+        
+        if (action === 'increment') {
+          newStock += value
+        } else if (action === 'decrement') {
+          newStock = Math.max(0, product.stock - value)
+        } else {
+          newStock = value
+        }
+        
+        try {
+          await apiUpdateProduct(product.id, { stock: newStock })
+        } catch (apiError) {
+          console.error('API更新失败，使用模拟数据', apiError)
+          await mockAPI.updateProduct(product.id, { stock: newStock })
+        }
+      }
+      
+      // 重新加载商品列表
+      await fetchProducts()
+      setSelectedProducts([])
+      
+      alert('商品库存已成功更新')
+    } catch (error) {
+      console.error('批量更新库存失败', error)
+      setError('批量更新库存失败，请稍后再试')
+    } finally {
+      setBulkActionLoading(false)
+    }
+  }
+
+  // 处理库存更新对话框
+  const handleBulkStockClick = () => {
+    if (selectedProducts.length === 0) {
+      alert('请先选择要更新的商品')
+      return
+    }
+    
+    const action = prompt('请选择操作类型（输入数字）：\n1. 增加库存\n2. 减少库存\n3. 设置库存为指定值')
+    if (!action) return
+    
+    const actionType = action === '1' ? 'increment' : action === '2' ? 'decrement' : action === '3' ? 'set' : null
+    
+    if (!actionType) {
+      alert('无效的操作类型')
+      return
+    }
+    
+    const valueInput = prompt(`请输入要${actionType === 'increment' ? '增加' : actionType === 'decrement' ? '减少' : '设置'}的数量：`)
+    if (!valueInput) return
+    
+    const value = parseInt(valueInput)
+    if (isNaN(value) || value < 0) {
+      alert('请输入有效的非负整数')
+      return
+    }
+    
+    handleBulkStockUpdate(actionType, value)
+  }
   
   if (loading && products.length === 0) {
     return (
@@ -199,13 +389,38 @@ const ProductsManagePage = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">商品管理</h1>
-        <Link 
-          to="/admin/products/new" 
-          className="btn btn-primary flex items-center"
-        >
-          <FiPlus className="mr-2" />
-          添加商品
-        </Link>
+        <div className="flex space-x-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept=".json"
+            onChange={handleFileChange}
+          />
+          <button 
+            onClick={handleImportClick}
+            className="btn btn-secondary flex items-center"
+            disabled={importLoading}
+          >
+            <FiUpload className="mr-2" />
+            {importLoading ? '导入中...' : '导入商品'}
+          </button>
+          <button 
+            onClick={handleExport}
+            className="btn btn-secondary flex items-center"
+            disabled={exportLoading}
+          >
+            <FiDownload className="mr-2" />
+            {exportLoading ? '导出中...' : '导出商品'}
+          </button>
+          <Link 
+            to="/admin/products/new" 
+            className="btn btn-primary flex items-center"
+          >
+            <FiPlus className="mr-2" />
+            添加商品
+          </Link>
+        </div>
       </div>
       
       {error && (
@@ -261,12 +476,23 @@ const ProductsManagePage = () => {
           </h2>
           
           {selectedProducts.length > 0 && (
-            <button 
-              className="btn btn-danger text-sm"
-              onClick={handleBulkDelete}
-            >
-              删除选中 ({selectedProducts.length})
-            </button>
+            <div className="flex space-x-2">
+              <button 
+                className="btn btn-secondary text-sm flex items-center"
+                onClick={handleBulkStockClick}
+                disabled={bulkActionLoading}
+              >
+                <FiRefreshCw className="mr-1" />
+                {bulkActionLoading ? '处理中...' : '更新库存'}
+              </button>
+              <button 
+                className="btn btn-danger text-sm"
+                onClick={handleBulkDelete}
+                disabled={bulkActionLoading}
+              >
+                删除选中 ({selectedProducts.length})
+              </button>
+            </div>
           )}
         </div>
         

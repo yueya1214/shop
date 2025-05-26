@@ -8,7 +8,8 @@ import {
   FiLogIn, 
   FiLogOut,
   FiSearch,
-  FiMenu
+  FiMenu,
+  FiSettings
 } from 'react-icons/fi'
 import { useAuthStore } from '../stores/authStore'
 import { useCartStore } from '../stores/cartStore'
@@ -152,6 +153,22 @@ const UserLayout: React.FC = () => {
                     </span>
                   </Link>
                   
+                  {user?.role === 'admin' && (
+                    <Link
+                      to="/admin"
+                      className={`px-3 py-2 rounded-md text-sm font-medium ${
+                        location.pathname.startsWith('/admin') 
+                          ? 'bg-gray-100 text-gray-900' 
+                          : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                      }`}
+                    >
+                      <span className="flex items-center">
+                        <FiSettings className="mr-1" />
+                        管理后台
+                      </span>
+                    </Link>
+                  )}
+                  
                   <button
                     onClick={handleLogout}
                     className="px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900"
@@ -244,6 +261,22 @@ const UserLayout: React.FC = () => {
                     {user?.name || '我的账户'}
                   </span>
                 </Link>
+                
+                {user?.role === 'admin' && (
+                  <Link
+                    to="/admin"
+                    className={`block px-3 py-2 rounded-md text-base font-medium ${
+                      location.pathname.startsWith('/admin') 
+                        ? 'bg-gray-100 text-gray-900' 
+                        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                  >
+                    <span className="flex items-center">
+                      <FiSettings className="mr-2" />
+                      管理后台
+                    </span>
+                  </Link>
+                )}
                 
                 <button
                   onClick={handleLogout}

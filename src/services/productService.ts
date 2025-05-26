@@ -65,6 +65,17 @@ export async function apiGetCategories(): Promise<string[]> {
   return response.data
 }
 
+// 批量导入商品
+export async function apiImportProducts(products: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>[]): Promise<void> {
+  await apiClient.post('/api/products/import', { products })
+}
+
+// 导出所有商品
+export async function apiExportProducts(): Promise<Product[]> {
+  const response = await apiClient.get('/api/products/export')
+  return response.data
+}
+
 // 模拟数据
 let mockProducts: Product[] = Array.from({ length: 20 }).map((_, index) => ({
   id: `prod-${index + 1}`,
@@ -151,5 +162,21 @@ export const mockAPI = {
   getCategories: (): Promise<string[]> => {
     const categories = Array.from(new Set(mockProducts.map(p => p.category)))
     return Promise.resolve(categories)
+  },
+  
+  importProducts: (products: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>[]): Promise<void> => {
+    const newProducts = products.map((product, index) => ({
+      id: `prod-${mockProducts.length + index + 1}`,
+      ...product,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }))
+    
+    mockProducts = [...newProducts, ...mockProducts]
+    return Promise.resolve()
+  },
+  
+  exportProducts: (): Promise<Product[]> => {
+    return Promise.resolve([...mockProducts])
   }
 } 
