@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { FiMail, FiLock, FiLogIn } from 'react-icons/fi'
 import { useAuthStore } from '../../stores/authStore'
+import { useCartStore } from '../../stores/cartStore'
 import { apiLogin, mockAPI } from '../../services/authService'
 import ErrorAlert from '../../components/ErrorAlert'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -15,6 +16,7 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const login = useAuthStore(state => state.login)
+  const syncCart = useCartStore(state => state.syncCart)
   
   // 从 URL 中获取重定向地址
   const from = (location.state as any)?.from?.pathname || '/'
@@ -37,6 +39,9 @@ const LoginPage: React.FC = () => {
       
       // 设置认证信息
       login(token, user)
+      
+      // 同步用户购物车
+      syncCart(user.id)
       
       // 登录成功后重定向
       navigate(from, { replace: true })

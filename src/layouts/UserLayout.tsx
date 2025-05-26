@@ -18,7 +18,7 @@ const UserLayout: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { user, isAuthenticated, logout } = useAuthStore()
-  const { items: cartItems } = useCartStore()
+  const { items: cartItems, syncCart } = useCartStore()
   const navigate = useNavigate()
   const location = useLocation()
   
@@ -26,6 +26,11 @@ const UserLayout: React.FC = () => {
   useEffect(() => {
     setMobileMenuOpen(false)
   }, [location.pathname])
+  
+  // 用户登录/登出状态变化时同步购物车
+  useEffect(() => {
+    syncCart(user?.id);
+  }, [syncCart, user?.id, isAuthenticated]);
   
   // 处理搜索提交
   const handleSearch = (e: React.FormEvent) => {
@@ -39,6 +44,8 @@ const UserLayout: React.FC = () => {
   // 处理登出
   const handleLogout = () => {
     logout()
+    // 登出后清空当前购物车显示
+    syncCart(null)
     navigate('/')
   }
   

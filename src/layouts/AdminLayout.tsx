@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
-import { FiMenu, FiX, FiHome, FiPackage, FiShoppingBag, FiLogOut, FiUser } from 'react-icons/fi'
+import { FiMenu, FiX, FiHome, FiPackage, FiShoppingBag, FiLogOut, FiUser, FiMessageSquare } from 'react-icons/fi'
 import { useAuthStore } from '../stores/authStore'
 
 const AdminLayout = () => {
@@ -49,7 +49,7 @@ const AdminLayout = () => {
             <Link
               to="/admin"
               className={`flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white ${
-                isActivePath('/admin') && !isActivePath('/admin/products') && !isActivePath('/admin/orders')
+                isActivePath('/admin') && !isActivePath('/admin/products') && !isActivePath('/admin/orders') && !isActivePath('/admin/reviews')
                   ? 'bg-gray-800 text-white'
                   : ''
               }`}
@@ -79,6 +79,17 @@ const AdminLayout = () => {
             >
               <FiShoppingBag className="mr-3" />
               订单管理
+            </Link>
+            
+            <Link
+              to="/admin/reviews"
+              className={`flex items-center px-6 py-3 text-gray-300 hover:bg-gray-800 hover:text-white ${
+                isActivePath('/admin/reviews') ? 'bg-gray-800 text-white' : ''
+              }`}
+              onClick={() => setSidebarOpen(false)}
+            >
+              <FiMessageSquare className="mr-3" />
+              评价管理
             </Link>
           </nav>
         </div>

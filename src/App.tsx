@@ -24,6 +24,7 @@ import ProductCreatePage from './pages/admin/ProductCreatePage'
 import ProductEditPage from './pages/admin/ProductEditPage'
 import OrdersManagePage from './pages/admin/OrdersManagePage'
 import AdminOrderDetailPage from './pages/admin/OrderDetailPage'
+import ReviewsManagePage from './pages/admin/ReviewsManagePage'
 import AdminLoginPage from './pages/auth/AdminLoginPage'
 
 // 保护路由组件
@@ -76,6 +77,7 @@ function App() {
           <Route path="products/:id/edit" element={<ProductEditPage />} />
           <Route path="orders" element={<OrdersManagePage />} />
           <Route path="orders/:id" element={<AdminOrderDetailPage />} />
+          <Route path="reviews" element={<ReviewsManagePage />} />
         </Route>
         
         {/* 认证路由 */}

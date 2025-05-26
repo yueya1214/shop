@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { FiShoppingCart, FiArrowLeft } from 'react-icons/fi'
 import { useCartStore } from '../../stores/cartStore'
 import { apiGetProduct, Product } from '../../services/productService'
+import ProductReviews from '../../components/ProductReviews'
 
 const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>()
@@ -37,14 +38,8 @@ const ProductDetailPage = () => {
   const handleAddToCart = () => {
     if (!product) return
     
-    for (let i = 0; i < quantity; i++) {
-      addItem({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image
-      })
-    }
+    // 添加商品到购物车
+    addItem(product, quantity)
     
     // 显示添加成功提示
     window.alert(`已将 ${quantity} 件 ${product.name} 加入购物车`)
@@ -157,6 +152,9 @@ const ProductDetailPage = () => {
           </div>
         </div>
       </div>
+      
+      {/* 商品评价区域 */}
+      {product && <ProductReviews productId={product.id} />}
     </div>
   )
 }

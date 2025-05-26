@@ -1,14 +1,19 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FiTrash2, FiMinus, FiPlus, FiArrowRight } from 'react-icons/fi'
 import { useCartStore } from '../../stores/cartStore'
 import { useAuthStore } from '../../stores/authStore'
 
 const CartPage = () => {
-  const { items, removeItem, updateQuantity, clearCart, totalPrice } = useCartStore()
-  const { isAuthenticated } = useAuthStore()
+  const { items, removeItem, updateQuantity, clearCart, totalPrice, syncCart } = useCartStore()
+  const { isAuthenticated, user } = useAuthStore()
   const navigate = useNavigate()
   const [isClearing, setIsClearing] = useState(false)
+  
+  // 组件加载时同步购物车
+  useEffect(() => {
+    syncCart(user?.id);
+  }, [syncCart, user?.id]);
   
   // 处理结算
   const handleCheckout = () => {
