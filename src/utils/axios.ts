@@ -5,7 +5,7 @@ import { useAuthStore } from '../stores/authStore'
 const api = axios.create({
   // 从环境变量获取 API URL，或使用默认的 Worker URL
   // 注意：您需要将 '您的用户名' 替换为您的 Cloudflare 账户名或自定义子域名
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://shopping-api.workers.dev',
   timeout: 20000, // 增加超时时间到 20 秒
   headers: {
     'Content-Type': 'application/json',

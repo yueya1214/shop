@@ -3,7 +3,8 @@ main = "workers-site/index.js"
 compatibility_date = "2023-12-01"
 
 [vars]
-JWT_SECRET = "123456"
+# 生成强随机密钥：openssl rand -base64 32
+JWT_SECRET = "123456"  # 请替换为实际生成的密钥
 
 # 注意：请使用您在 Cloudflare 控制台创建的 KV 命名空间 ID 替换以下值
 [[kv_namespaces]]

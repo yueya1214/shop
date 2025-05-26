@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { FiShoppingCart, FiSearch } from 'react-icons/fi'
 import { useCartStore } from '../../stores/cartStore'
-import { apiGetProducts, apiGetCategories, Product } from '../../services/productService'
+import { apiGetProducts, apiGetCategories, Product, mockAPI } from '../../services/productService'
 
 const HomePage = () => {
   const [searchParams] = useSearchParams()
@@ -49,12 +49,31 @@ const HomePage = () => {
       setError('')
       
       try {
-        const { products, total } = await apiGetProducts(
-          page, 
-          8, 
-          searchQuery, 
-          selectedCategory
-        )
+        // 尝试从API获取数据
+        let productsData;
+        try {
+          // 使用正确的参数格式调用 API
+          productsData = await apiGetProducts({
+            page, 
+            limit: 8, 
+            search: searchQuery || undefined, 
+            category: selectedCategory || undefined
+          });
+        } catch (apiError) {
+          console.error('API请求失败，使用模拟数据', apiError);
+          // 使用模拟数据作为备用
+          productsData = await mockAPI.getProducts({
+            page, 
+            limit: 8, 
+            search: searchQuery || undefined, 
+            category: selectedCategory || undefined
+          });
+        }
+        
+        // 确保我们有有效的商品数据
+        const products = Array.isArray(productsData?.products) ? productsData.products : [];
+        const total = typeof productsData?.total === 'number' ? productsData.total : 0;
+        
         setProducts(products)
         setTotalProducts(total)
       } catch (error) {
@@ -122,12 +141,7 @@ const HomePage = () => {
   
   // 添加到购物车
   const handleAddToCart = (product: Product) => {
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image
-    })
+    addItem(product)
   }
   
   // 计算总页数

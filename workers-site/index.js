@@ -92,6 +92,13 @@ async function handleApiRequest(request, path) {
   const method = request.method
   const url = new URL(request.url)
   
+  console.log('API请求:', {
+    method,
+    url: request.url,
+    path,
+    headers: Object.fromEntries(request.headers.entries())
+  })
+  
   // 处理 OPTIONS 请求（CORS 预检）
   if (method === 'OPTIONS') {
     return new Response(null, {
@@ -248,7 +255,9 @@ async function handleRegister(request, { body }) {
   }
 
   // 检查邮箱是否已存在
+  console.log('KV操作: 查询用户', { key: `user:${body.email}` })
   const existingUser = await USERS_NAMESPACE.get(`user:${body.email}`)
+  console.log('KV操作结果: 查询用户', { key: `user:${body.email}`, exists: !!existingUser })
   if (existingUser) {
     return jsonResponse({ error: 'Email already exists' }, 409)
   }
@@ -265,8 +274,19 @@ async function handleRegister(request, { body }) {
   }
 
   // 存储用户数据
+  console.log('KV操作: 存储用户信息', { 
+    key: `user:${userId}`,
+    data: { id: userId, email: body.email, name: body.name }
+  })
   await USERS_NAMESPACE.put(`user:${userId}`, JSON.stringify(user))
-  await USERS_NAMESPACE.put(`user:${body.email}`, userId) // 用于快速邮箱查找
+  
+  console.log('KV操作: 存储用户邮箱映射', {
+    key: `user:${body.email}`,
+    value: userId
+  })
+  await USERS_NAMESPACE.put(`user:${body.email}`, userId)
+  
+  console.log('KV操作完成: 用户注册成功', { userId })
 
   // 生成 JWT
   const token = await generateToken(user)
@@ -430,13 +450,25 @@ async function handleCreateProduct(request, { body }) {
   }
   
   // 存储产品数据
+  console.log('KV操作: 创建新产品', {
+    key: `product:${productId}`,
+    data: { name: product.name, price: product.price, category: product.category }
+  })
   await PRODUCTS_NAMESPACE.put(`product:${productId}`, JSON.stringify(product))
   
   // 更新产品列表
   const productsListJson = await PRODUCTS_NAMESPACE.get('products:list')
   let productsList = productsListJson ? JSON.parse(productsListJson) : []
   productsList.push(productId)
+  
+  console.log('KV操作: 更新产品列表', {
+    key: 'products:list',
+    action: '添加产品ID',
+    productId: productId
+  })
   await PRODUCTS_NAMESPACE.put('products:list', JSON.stringify(productsList))
+  
+  console.log('KV操作完成: 产品创建成功', { productId })
   
   return jsonResponse(product)
 }
@@ -445,12 +477,22 @@ async function handleUpdateProduct(request, { params, body }) {
   const productId = params.id
   
   // 检查产品是否存在
+  console.log('KV操作: 查询产品', { key: `product:${productId}` })
   const productJson = await PRODUCTS_NAMESPACE.get(`product:${productId}`)
   if (!productJson) {
+    console.log('KV操作失败: 产品不存在', { productId })
     return jsonResponse({ error: 'Product not found' }, 404)
   }
   
   const existingProduct = JSON.parse(productJson)
+  console.log('KV操作成功: 获取产品', { 
+    productId,
+    currentData: {
+      name: existingProduct.name,
+      price: existingProduct.price,
+      stock: existingProduct.stock
+    }
+  })
   
   // 更新产品字段
   const updatedProduct = {
@@ -461,8 +503,29 @@ async function handleUpdateProduct(request, { params, body }) {
     updatedAt: new Date().toISOString()
   }
   
+  // 记录变更
+  const changes = {
+    name: body.name && body.name !== existingProduct.name ? 'changed' : 'unchanged',
+    price: body.price && parseFloat(body.price) !== existingProduct.price ? 'changed' : 'unchanged',
+    stock: body.stock && parseInt(body.stock) !== existingProduct.stock ? 'changed' : 'unchanged',
+    description: body.description && body.description !== existingProduct.description ? 'changed' : 'unchanged',
+    image: body.image && body.image !== existingProduct.image ? 'changed' : 'unchanged',
+    category: body.category && body.category !== existingProduct.category ? 'changed' : 'unchanged'
+  }
+  
+  console.log('KV操作: 更新产品', {
+    productId,
+    changes,
+    newData: {
+      name: updatedProduct.name,
+      price: updatedProduct.price,
+      stock: updatedProduct.stock
+    }
+  })
+  
   // 存储更新的产品
   await PRODUCTS_NAMESPACE.put(`product:${productId}`, JSON.stringify(updatedProduct))
+  console.log('KV操作完成: 产品更新成功', { productId })
   
   return jsonResponse(updatedProduct)
 }
@@ -471,12 +534,23 @@ async function handleDeleteProduct(request, { params }) {
   const productId = params.id
   
   // 检查产品是否存在
-  const productExists = await PRODUCTS_NAMESPACE.get(`product:${productId}`)
-  if (!productExists) {
+  console.log('KV操作: 查询待删除产品', { key: `product:${productId}` })
+  const productJson = await PRODUCTS_NAMESPACE.get(`product:${productId}`)
+  if (!productJson) {
+    console.log('KV操作失败: 产品不存在', { productId })
     return jsonResponse({ error: 'Product not found' }, 404)
   }
   
+  const product = JSON.parse(productJson)
+  console.log('KV操作: 获取产品详情', {
+    productId,
+    name: product.name,
+    price: product.price,
+    stock: product.stock
+  })
+  
   // 删除产品
+  console.log('KV操作: 删除产品', { key: `product:${productId}` })
   await PRODUCTS_NAMESPACE.delete(`product:${productId}`)
   
   // 更新产品列表
@@ -484,9 +558,16 @@ async function handleDeleteProduct(request, { params }) {
   if (productsListJson) {
     let productsList = JSON.parse(productsListJson)
     productsList = productsList.filter(id => id !== productId)
+    
+    console.log('KV操作: 更新产品列表', {
+      key: 'products:list',
+      action: '移除产品ID',
+      productId: productId
+    })
     await PRODUCTS_NAMESPACE.put('products:list', JSON.stringify(productsList))
   }
   
+  console.log('KV操作完成: 产品删除成功', { productId })
   return jsonResponse({ success: true })
 }
 
